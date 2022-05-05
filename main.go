@@ -40,7 +40,7 @@ func (h *Handler) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 		}
 	}
 
-	fmt.Fprintln(w, "<pre>")
+	fmt.Fprintln(w, `<pre style="background-color: #f8f8f8">`)
 	defer fmt.Fprintln(w, "</pre>")
 	sc := bufio.NewScanner(fd)
 	for sc.Scan() {
