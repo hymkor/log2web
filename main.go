@@ -18,7 +18,16 @@ func (h *Handler) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	w.Header().Add("Content-Type", "text/html")
 	w.WriteHeader(http.StatusOK)
 
-	fmt.Fprintln(w, "<html><body>")
+	fmt.Fprintln(w, `<html>
+<head><style><!--
+	th{
+		text-align: right
+	}
+	pre{
+		background-color: #f8f8f8
+	}
+--></style></head>
+<body>`)
 	defer fmt.Fprintln(w, "</body></html>")
 
 	fmt.Fprintf(w, "<h1>%s</h1>\n", html.EscapeString(h.path))
@@ -34,13 +43,20 @@ func (h *Handler) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	stat, err := fd.Stat()
 	if err == nil {
 		size := stat.Size()
+		fmt.Fprintln(w, "<table>")
+		fmt.Fprintf(w, "<tr><th>ModTime:</th><td>%v</td></tr>\n",
+			stat.ModTime())
+		fmt.Fprintf(w, "<tr><th>Size:</th><td>%d bytes",
+			size)
 		if size > 1024 {
 			fd.Seek(-1024, os.SEEK_END)
 			dropLineCount = 1
+			fmt.Fprintln(w, "(showing last 1K bytes)")
 		}
+		fmt.Fprintln(w, "</td></tr></table>")
 	}
 
-	fmt.Fprintln(w, `<pre style="background-color: #f8f8f8">`)
+	fmt.Fprintln(w, `<pre>`)
 	defer fmt.Fprintln(w, "</pre>")
 	sc := bufio.NewScanner(fd)
 	for sc.Scan() {
