@@ -30,11 +30,25 @@ func (h *Handler) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	}
 	defer fd.Close()
 
+	dropLineCount := 0
+	stat, err := fd.Stat()
+	if err == nil {
+		size := stat.Size()
+		if size > 1024 {
+			fd.Seek(-1024, os.SEEK_END)
+			dropLineCount = 1
+		}
+	}
+
 	fmt.Fprintln(w, "<pre>")
 	defer fmt.Fprintln(w, "</pre>")
 	sc := bufio.NewScanner(fd)
 	for sc.Scan() {
-		fmt.Fprintln(w, html.EscapeString(sc.Text()))
+		if dropLineCount > 0 {
+			dropLineCount--
+		} else {
+			fmt.Fprintln(w, html.EscapeString(sc.Text()))
+		}
 	}
 }
 
