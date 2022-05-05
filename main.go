@@ -3,12 +3,15 @@ package main
 import (
 	"bufio"
 	"errors"
+	"flag"
 	"fmt"
 	"html"
 	"net/http"
 	"os"
 	"time"
 )
+
+var portNo = flag.Int("p", 8000, "portNo")
 
 type Handler struct {
 	path string
@@ -76,7 +79,7 @@ func mains(args []string) error {
 		path: args[0],
 	}
 	service := &http.Server{
-		Addr:           ":8000",
+		Addr:           fmt.Sprintf(":%d", *portNo),
 		Handler:        handler,
 		ReadTimeout:    10 * time.Second,
 		WriteTimeout:   10 * time.Second,
@@ -91,7 +94,8 @@ func mains(args []string) error {
 }
 
 func main() {
-	if err := mains(os.Args[1:]); err != nil {
+	flag.Parse()
+	if err := mains(flag.Args()); err != nil {
 		fmt.Fprintln(os.Stderr, err.Error())
 		os.Exit(1)
 	}
