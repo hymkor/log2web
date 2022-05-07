@@ -15,11 +15,17 @@ import (
 var portNo = flag.Int("p", 8000, "portNo")
 
 type Handler struct {
-	path string
+	notFound http.Handler
+	path     string
 }
 
 func (h *Handler) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	log.Println(req.RemoteAddr, req.Method, req.URL.Path)
+	if req.URL.Path == "/favicon.ico" {
+		// log.Println(req.RemoteAddr, req.Method, req.URL.Path, "NOT FOUND")
+		h.notFound.ServeHTTP(w, req)
+		return
+	}
 
 	w.Header().Add("Content-Type", "text/html")
 	w.WriteHeader(http.StatusOK)
@@ -79,7 +85,8 @@ func mains(args []string) error {
 		return errors.New("FILENAME is required")
 	}
 	handler := &Handler{
-		path: args[0],
+		path:     args[0],
+		notFound: http.NotFoundHandler(),
 	}
 	service := &http.Server{
 		Addr:           fmt.Sprintf(":%d", *portNo),
