@@ -30,6 +30,8 @@ func (h *Handler) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	w.Header().Add("Content-Type", "text/html")
 	w.WriteHeader(http.StatusOK)
 
+	title := html.EscapeString(h.path)
+
 	fmt.Fprintln(w, `<html>
 <head><style><!--
 	th{
@@ -38,11 +40,12 @@ func (h *Handler) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	pre{
 		background-color: #f8f8f8
 	}
---></style></head>
-<body>`)
+--></style>`)
+	fmt.Fprintf(w, "<title>%s</title>\n", title)
+	fmt.Fprintln(w, "</head><body>")
 	defer fmt.Fprintln(w, "</body></html>")
 
-	fmt.Fprintf(w, "<h1>%s</h1>\n", html.EscapeString(h.path))
+	fmt.Fprintf(w, "<h1>%s</h1>\n", title)
 
 	fd, err := os.Open(h.path)
 	if err != nil {
