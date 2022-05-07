@@ -6,6 +6,7 @@ import (
 	"flag"
 	"fmt"
 	"html"
+	"log"
 	"net/http"
 	"os"
 	"time"
@@ -18,6 +19,8 @@ type Handler struct {
 }
 
 func (h *Handler) ServeHTTP(w http.ResponseWriter, req *http.Request) {
+	log.Println(req.RemoteAddr, req.Method, req.URL.Path)
+
 	w.Header().Add("Content-Type", "text/html")
 	w.WriteHeader(http.StatusOK)
 
