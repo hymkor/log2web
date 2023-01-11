@@ -1,34 +1,28 @@
 NAME=$(lastword $(subst /, ,$(abspath .)))
-VERSION=$(shell git.exe describe --tags)
+VERSION=$(shell git.exe describe --tags 2>nul || echo v0.0.0)
 GOOPT=-ldflags "-s -w -X main.version=$(VERSION)"
+
 ifeq ($(OS),Windows_NT)
     SHELL=CMD.EXE
-    SET=set
-    DEL=del
+    SET=SET
 else
     SET=export
-    DEL=rm
 endif
 
 all:
-	go fmt
+	go fmt $(foreach X,$(wildcard internal/*),&& cd $(X) && go fmt && cd ../..)
 	$(SET) "CGO_ENABLED=0" && go build $(GOOPT)
 
-test:
-	go test -v
-
 _package:
-	$(SET) "CGO_ENABLED=0" && go build $(GOOPT) && \
-	zip -9 $(NAME)-$(VERSION)-$(GOOS)-$(GOARCH).zip $(NAME)$(EXE)
+	go fmt
+	$(SET) "CGO_ENABLED=0" && go build $(GOOPT)
+	zip $(NAME)-$(VERSION)-$(GOOS)-$(GOARCH).zip $(NAME)$(EXT)
 
 package:
-	$(SET) "GOOS=linux" && $(SET) "GOARCH=386"   && $(MAKE) _package EXE=
-	$(SET) "GOOS=linux" && $(SET) "GOARCH=amd64" && $(MAKE) _package EXE=
-	$(SET) "GOOS=windows" && $(SET) "GOARCH=386"   && $(MAKE) _package EXE=.exe
-	$(SET) "GOOS=windows" && $(SET) "GOARCH=amd64" && $(MAKE) _package EXE=.exe
-
-clean:
-	$(DEL) *.zip *.tar.gz $(NAME) $(NAME).exe
+	$(SET) "GOOS=linux"   && $(SET) "GOARCH=386"   && $(MAKE) _package EXT=
+	$(SET) "GOOS=linux"   && $(SET) "GOARCH=amd64" && $(MAKE) _package EXT=
+	$(SET) "GOOS=windows" && $(SET) "GOARCH=386"   && $(MAKE) _package EXT=.exe
+	$(SET) "GOOS=windows" && $(SET) "GOARCH=amd64" && $(MAKE) _package EXT=.exe
 
 manifest:
-	go run ./mkmanifest.go *-windows-*.zip > $(NAME).json
+	make-scoop-manifest *-windows-*.zip > $(NAME).json
